@@ -93,10 +93,10 @@ static StackLayers stackLayers[]={
   };
 
 static StackProcess stackProcess[]={
-  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},4000,udp_echo,-1},
-  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},30000,udp_client,-1},
-  {IPV4_PROTOCOL_TCP,{{0,0,0,0}},5000,tcp_echo,-1},
-  {0,{{0,0,0,0}},0,NULL,-1}
+  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},4000,udp_echo,-1},
+  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},30000,udp_client,-1},
+  {IPV4_PROTOCOL_TCP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},5000,tcp_echo,-1},
+  {0,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},0,NULL,-1}
   };
 
 ////
@@ -605,8 +605,8 @@ StackProcess *stackFindProcessIpv6(
 int i=0;
 while(stackProcess[i].process!=NULL){
   if(stackProcess[i].protocol==protocol &&
-     (ipv6Compare(stackProcess[i].address,IPV6_ADDRESS_NULL) ||
-      ipv6Compare(stackProcess[i].address,address)) &&
+     (ipv6Compare(stackProcess[i].addressv6,IPV6_ADDRESS_NULL) ||
+      ipv6Compare(stackProcess[i].addressv6,address)) &&
      stackProcess[i].port==port)
     return stackProcess+i;
   i++;

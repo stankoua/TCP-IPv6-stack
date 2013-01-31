@@ -95,6 +95,7 @@ typedef struct{
 typedef struct{
   unsigned char protocol;
   IPv4Address address;
+  IPv6Address addressv6;
   short int port;
   unsigned char (*process)(
     unsigned char type,
