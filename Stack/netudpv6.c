@@ -15,6 +15,7 @@
 #include <libevents.h>
 
 #include "netether.h"
+#include "netip.h"
 #include "netipv6.h"
 #include "neticmpv6.h"
 #include "netudpv6.h"
@@ -65,7 +66,7 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
         { arraysFreeArray(infos); return 1; }
     AARRAY_FGETREF(infos,data,unsigned char *,data,size);   // int size = size(data), getting the data(udp packet)
     AARRAY_HGETREF(infos,iph,IPv6_fields *,iph);    // getting the ipv6 headers
-    ARRAY_MGETVAR(infos,ifid,int);      // will be useful for icmp triggering
+    AARRAY_MGETVAR(infos,ifid,int);      // will be useful for icmp triggering
     AARRAY_MGETVAR(infos,l3id,int);     // same for him
     arraysFreeArray(infos);
 
@@ -154,7 +155,7 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
             AARRAY_MSETVAR(icmp_infos,type);
             AARRAY_MSETVAR(icmp_infos,code);
             AARRAY_FSETREF(icmp_infos,data,data,reply_size);
-            AARRAY_FSETREF(icmp_infos,ldst,iph->source,sizeof(IPv6Address));
+            AARRAY_FSETREF(icmp_infos,ldst,&iph->source,sizeof(IPv6Address));
             if(eventsTrigger(picmp->event_out,icmp_infos)<0){
                 fprintf(stderr,"Cannot trigger ICMPv6 out event !\n");
                 exit(-1);
@@ -219,14 +220,14 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     udp->target=htons(pdst);
     udp->length=htons(size_udp);
     int sum=ipv6PseudoHeaderChecksum(
-            source,target,IPV6_PROTOCOL_UDP,&data,size_udp);
+            source,target,size_udp,IPV6_PROTOCOL_UDP);
     if(sum<0){ free(data); return 0; }
     unsigned short int checksum=(unsigned short int)sum;
     udp=(UDPv6_fields *)data;
     udp->checksum=htons(checksum);
 #ifdef VERBOSE
     fprintf(stderr,"Outgoing UDPv6 packet:\n");
-    displayUDPPacket(stderr,udp,size_udp);
+    displayUDPv6Packet(stderr,udp,size_udp);
 #endif
 
     /* Call IP layer */

@@ -40,6 +40,6 @@ neticmpv6.o: neticmpv6.c netip.h netipv6.h neticmpv6.h stack.h
 neticmpv6nd.o: neticmpv6nd.c netip.h netipv6.h neticmpv6.h neticmpv6nd.h stack.h
 netroute.o: netroute.c netroute.h netether.h netip.h netipv6.h stack.h
 nettcp.o: nettcp.c netip.h netipv6.h stack.h
-netudpv6.o: netether.h netip.h netipv6.h neticmpv6.h netudpv6.h stack.h
+netudpv6.o: netip.h netipv6.h neticmpv6.h netudpv6.h stack.h
 processes.o: processes.c netip.h netipv6.h stack.h
 
