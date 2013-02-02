@@ -89,12 +89,14 @@ typedef struct{
 
 typedef struct{
   IPv4Address address;
+  IPv6Address addressV6;
   unsigned short int port;
   } SocketAddress;
 
 typedef struct{
   unsigned char protocol;
   IPv4Address address;
+  IPv6Address addressV6;
   short int port;
   unsigned char (*process)(
     unsigned char type,
@@ -103,16 +105,6 @@ typedef struct{
   int event;
   } StackProcess;
 
-typedef struct{
-  unsigned char protocol;
-  IPv6Address addressv6;
-  short int port;
-  unsigned char (*process)(
-    unsigned char type,
-    SocketAddress to,SocketAddress from,
-    unsigned char *data,int size);
-  int event;
-  } StackProcessv6;
 ////
 // Prototypes
 ////

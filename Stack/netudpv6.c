@@ -94,8 +94,8 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
             free(data); free(iph); return 0;
         }
     }
-    int psource_net=udp->source;
-    int ptarget_net=udp->target;
+    int psource_net=udp->source;        // sender
+    int ptarget_net=udp->target;        // us
     int psource=ntohs(udp->source);
     int ptarget=ntohs(udp->target);
     if(psource==0){
@@ -175,8 +175,8 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
         unsigned char type=PROCESS_DATA;
         AssocArray *infos=NULL;
         AARRAY_MSETVAR(infos,type);
-        AARRAY_FSETVAR(infos,ldst,iph->target);
-        AARRAY_FSETVAR(infos,lsrc,iph->source);
+        AARRAY_FSETVAR(infos,ldst,iph->target);     // us
+        AARRAY_FSETVAR(infos,lsrc,iph->source);     // sender
         AARRAY_FSETVAR(infos,pdst,ptarget_net);
         AARRAY_FSETVAR(infos,psrc,psource_net);
         AARRAY_FSETREF(infos,data,data,size_data);

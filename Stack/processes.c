@@ -47,6 +47,21 @@ unsigned char udp_echo( unsigned char type, SocketAddress to,SocketAddress from,
     return 0;
 }
 
+unsigned char udp6_echo( unsigned char type, SocketAddress to,SocketAddress from,
+                         unsigned char *data,int size)
+{
+    printf("udp_echo: type=%x\n",type);
+    if(type==PROCESS_DATA){
+        printf("udp_echo: (%s,%hu)",ipv6Address2String(from.addressV6),from.port);
+        printf("->(%s,%hu)\n",ipv6Address2String(to.addressV6),to.port);
+        data=(unsigned char *)realloc(data,size+2);
+        memmove(data+2,data,size);
+        memcpy(data,UDP_ECHO_PROMPT,strlen(UDP_ECHO_PROMPT));
+        return stackUDPv6SendDatagram(from.addressV6,from.port,data,size+2);
+    }
+    return 0;
+}
+
 ////
 // Processus implementing a TCP echo
 ////

@@ -21,3 +21,7 @@ ifconfig tap0 192.168.100.2
 nc -u -6' fe80:0:0:0:1:2:3:4 4000
 
 nc -u 192.168.100.100 4000
+================================
+
+envie de passer dans le array adress IPv6 NULLE
+dans la fonction stackInitializeProcesses
