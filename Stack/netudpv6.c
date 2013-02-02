@@ -66,8 +66,9 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
         { arraysFreeArray(infos); return 1; }
     AARRAY_FGETREF(infos,data,unsigned char *,data,size);   // int size = size(data), getting the data(udp packet)
     AARRAY_HGETREF(infos,iph,IPv6_fields *,iph);    // getting the ipv6 headers
-    AARRAY_MGETVAR(infos,ifid,int);      // will be useful for icmp triggering
-    AARRAY_MGETVAR(infos,l3id,int);     // same for him
+    AARRAY_MGETVAR(infos,ifid,int);         // will be useful for icmp triggering
+    AARRAY_MGETVAR(infos,l3id,int);         // same for him
+    AARRAY_FGETVAR(infos,hsum,unsigned short int,csum_headers);
     arraysFreeArray(infos);
 
     /* Check UDP headers */
@@ -80,10 +81,11 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
     }
 
     if(udp->checksum!=0){
-        int sum=ipv6PseudoHeaderChecksum(
-                iph->source,iph->target,size,IPV6_PROTOCOL_UDP);
-        if(sum<0){ free(data); free(iph); return 0; }
-        unsigned short int checksum=(unsigned short int)sum;
+        unsigned short int checksum=genericChecksum(data,size,csum_headers);
+        //int sum=ipv6PseudoHeaderChecksum(
+                //iph->source,iph->target,size,IPV6_PROTOCOL_UDP);
+        //if(sum<0){ free(data); free(iph); return 0; }
+        //unsigned short int checksum=(unsigned short int)sum;
         if(checksum!=0){
 #ifdef VERBOSE
             fprintf(stderr,"UDPv6 packet: bad checksum\n");
@@ -227,7 +229,7 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     udp->checksum=htons(checksum);
 #ifdef VERBOSE
     fprintf(stderr,"Outgoing UDPv6 packet:\n");
-    displayUDPPacket(stderr,udp,size_udp);
+    displayUDPv6Packet(stderr,udp,size_udp);
 #endif
 
     /* Call IP layer */

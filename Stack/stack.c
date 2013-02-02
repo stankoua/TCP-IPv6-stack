@@ -53,8 +53,8 @@ static NetworkAddressesIPv4 eth0_ipv4[]={
     { {{0,0,0,0}}, 0 }
   };
 
-static NetworkAddressesIPv6 eth0_ipv6[]={
-    { {{0xfe,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+static NetworkAddressesIPv6 eth0_ipv6[]={       // ancienne fe80::1:2:3:4
+    { {{0x20,0x01,0x06,0x60,0x44,0x01,0x60,0x06,
         0x00,0x01,0x00,0x02,0x00,0x03,0x00,0x04}}, 64 },
     { {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}, 0 }
   };
@@ -93,10 +93,10 @@ static StackLayers stackLayers[]={
   };
 
 static StackProcess stackProcess[]={
-  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},4000,udp_echo,-1},
-  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},30000,udp_client,-1},
-  {IPV4_PROTOCOL_TCP,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},5000,tcp_echo,-1},
-  {0,{{0,0,0,0}},{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},0,NULL,-1}
+  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},4000,udp_echo,-1},
+  {IPV4_PROTOCOL_UDP,{{0,0,0,0}},30000,udp_client,-1},
+  {IPV4_PROTOCOL_TCP,{{0,0,0,0}},5000,tcp_echo,-1},
+  {0,{{0,0,0,0}},0,NULL,-1}
   };
 
 ////
