@@ -1,0 +1,23 @@
+Dans le terminal A ==========================
+super setcap stack
+./stack 
+
+
+Dans le terminal B ==========================
+/sbin/ifconfig
+super ifconfig 0 192.168.100.8 255.255.255.0
+ping 192.168.100.100
+
+
+faire un:
+ping6 -I tap0 ping6 -I tap0 fe80:0:0:0:1:2:3:4 pour lancer la pile
+
+
+=================================
+chez moi 
+
+ifconfig tap0 192.168.100.2
+
+nc -u -6' fe80:0:0:0:1:2:3:4 4000
+
+nc -u 192.168.100.100 4000

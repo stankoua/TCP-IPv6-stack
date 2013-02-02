@@ -63,11 +63,13 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
     /* Get values from associative array */
     AssocArray *infos=(AssocArray *)selector->data_this;
     if(arraysTestIndex(infos,"data",0)<0 || arraysTestIndex(infos,"iph",0)<0)
-        { arraysFreeArray(infos); return 1; }
+    { arraysFreeArray(infos); return 1; }
+
     AARRAY_FGETREF(infos,data,unsigned char *,data,size);   // int size = size(data), getting the data(udp packet)
     AARRAY_HGETREF(infos,iph,IPv6_fields *,iph);    // getting the ipv6 headers
     AARRAY_MGETVAR(infos,ifid,int);      // will be useful for icmp triggering
     AARRAY_MGETVAR(infos,l3id,int);     // same for him
+    AARRAY_FGETVAR(infos,hsum,unsigned short int,csum_headers);
     arraysFreeArray(infos);
 
     /* Check UDP headers */
@@ -80,10 +82,11 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
     }
 
     if(udp->checksum!=0){
-        int sum=ipv6PseudoHeaderChecksum(
-                iph->source,iph->target,size,IPV6_PROTOCOL_UDP);
-        if(sum<0){ free(data); free(iph); return 0; }
-        unsigned short int checksum=(unsigned short int)sum;
+        unsigned short int checksum=genericChecksum(data,size,csum_headers);
+        //int sum=ipv6PseudoHeaderChecksum(
+        //iph->source,iph->target,size,IPV6_PROTOCOL_UDP);
+        //if(sum<0){ free(data); free(iph); return 0; }
+        //unsigned short int checksum=(unsigned short int)sum;
         if(checksum!=0){
 #ifdef VERBOSE
             fprintf(stderr,"UDPv6 packet: bad checksum\n");
@@ -123,30 +126,30 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
             unsigned char type=ICMPV6_TYPE_UNREACHABLE;
             unsigned char code=ICMPV6_UNREACHABLE_CODE_PORT;
             /*
-            int size_iph=IPv4_get_hlength(iph)*4;
-            int size_hudp=2*4;
-            int size_reply=4+size_iph+size_hudp;
-            data=(unsigned char *)_realloc(data,size_reply);
-            if(data==NULL && size_reply>0)
-            { perror("udpDecodePacket.realloc"); return 0; }
-            memmove(data+4+size_iph,data,size_hudp);
-            memcpy(data+4,iph,size_iph);
-            bzero(data,4);
-            AssocArray *icmp_infos=NULL;
-            AARRAY_MSETVAR(icmp_infos,type);
-            AARRAY_MSETVAR(icmp_infos,code);
-            AARRAY_FSETREF(icmp_infos,data,data,size_reply);
-            AARRAY_FSETVAR(icmp_infos,ldst,iph->source);
-            if(eventsTrigger(picmp->event_out,icmp_infos)<0){
-                fprintf(stderr,"Cannot trigger ICMP out event !\n");
-                exit(-1);
-            }
-            */
+               int size_iph=IPv4_get_hlength(iph)*4;
+               int size_hudp=2*4;
+               int size_reply=4+size_iph+size_hudp;
+               data=(unsigned char *)_realloc(data,size_reply);
+               if(data==NULL && size_reply>0)
+               { perror("udpDecodePacket.realloc"); return 0; }
+               memmove(data+4+size_iph,data,size_hudp);
+               memcpy(data+4,iph,size_iph);
+               bzero(data,4);
+               AssocArray *icmp_infos=NULL;
+               AARRAY_MSETVAR(icmp_infos,type);
+               AARRAY_MSETVAR(icmp_infos,code);
+               AARRAY_FSETREF(icmp_infos,data,data,size_reply);
+               AARRAY_FSETVAR(icmp_infos,ldst,iph->source);
+               if(eventsTrigger(picmp->event_out,icmp_infos)<0){
+               fprintf(stderr,"Cannot trigger ICMP out event !\n");
+               exit(-1);
+               }
+               */
             // Sending icmpv6 packet instead of icmpv4 packet
             int reply_size=iph->length+4;
             data=(unsigned char *)_realloc(data,reply_size);
             if(data==NULL && reply_size>0)
-                { perror("ipv6DecodePacket.realloc"); return 0; }
+            { perror("ipv6DecodePacket.realloc"); return 0; }
             memmove(data+4,data,reply_size-4);
             bzero(data,4);
             AssocArray *icmp_infos=NULL;

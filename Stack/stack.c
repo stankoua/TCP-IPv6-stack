@@ -53,8 +53,8 @@ static NetworkAddressesIPv4 eth0_ipv4[]={
     { {{0,0,0,0}}, 0 }
   };
 
-static NetworkAddressesIPv6 eth0_ipv6[]={
-    { {{0xfe,0x80,0x00,0x00,0x00,0x00,0x00,0x00,
+static NetworkAddressesIPv6 eth0_ipv6[]={       // ancienne fe80::1:2:3:4
+    { {{0x20,0x01,0x06,0x60,0x44,0x01,0x60,0x06,
         0x00,0x01,0x00,0x02,0x00,0x03,0x00,0x04}}, 64 },
     { {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}, 0 }
   };
@@ -606,8 +606,8 @@ StackProcess *stackFindProcessIpv6(
 int i=0;
 while(stackProcess[i].process!=NULL){
   if(stackProcess[i].protocol==protocol &&
-     (ipv6Compare(stackProcess[i].address,IPV6_ADDRESS_NULL) ||
-      ipv6Compare(stackProcess[i].address,address)) &&
+     (ipv6Compare(stackProcess[i].addressv6,IPV6_ADDRESS_NULL) ||
+      ipv6Compare(stackProcess[i].addressv6,address)) &&
      stackProcess[i].port==port)
     return stackProcess+i;
   i++;
