@@ -108,7 +108,8 @@ typedef struct{
 ////
 // Prototypes
 ////
-
+static unsigned char stackHandleTransportDatav6(
+  EventsEvent *event,EventsSelector *selector);
 unsigned char stackAddEthernetMulticast(
   EthernetMulticastAddresses *multicast,EthernetAddress new);
 unsigned char stackDelEthernetMulticast(

@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <arpa/inet.h>
 
@@ -154,7 +155,7 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
             bzero(data,4);
             AssocArray *icmp_infos=NULL;
             AARRAY_MSETVAR(icmp_infos,ifid);
-            AARRAY_FSETVAR(infos,l3id,l3id);
+            AARRAY_FSETVAR(icmp_infos,l3id,l3id);
             AARRAY_MSETVAR(icmp_infos,type);
             AARRAY_MSETVAR(icmp_infos,code);
             AARRAY_FSETREF(icmp_infos,data,data,reply_size);
@@ -173,8 +174,13 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
         data=(unsigned char *)_realloc(data,size_data);
         if(data==NULL && size_data>0){ perror("udpv6DecodePacket.realloc"); return 0; }
         unsigned char type=PROCESS_DATA;
+        printf("==============udpv6DecodePacket=============target=%s================\n",ipv6Address2String(iph->target));
+        
+        printf("==============udpv6DecodePacket============source=%s==================\n",ipv6Address2String(iph->source));
         AssocArray *infos=NULL;
         AARRAY_MSETVAR(infos,type);
+        AARRAY_MSETVAR(infos,ifid);
+        AARRAY_FSETVAR(infos,l3id,l3id);
         AARRAY_FSETVAR(infos,ldst,iph->target);     // us
         AARRAY_FSETVAR(infos,lsrc,iph->source);     // sender
         AARRAY_FSETVAR(infos,pdst,ptarget_net);
@@ -203,15 +209,21 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     StackLayers *pip=stackFindLayerByProtocol(LEVEL_NETWORK,ETHERNET_PROTO_IPV6);
     if(pip==NULL || pip->event_out<0){ arraysFreeArray(infos); return 0; }
     AARRAY_FGETVAR(infos,ldst,IPv6Address,target);
+    AARRAY_FGETVAR(infos,sdst,IPv6Address,source);
     AARRAY_MGETVAR(infos,pdst,unsigned short int);
     AARRAY_MGETVAR(infos,psrc,unsigned short int);
     AARRAY_FGETREF(infos,data,unsigned char *,data,size_data);
     arraysFreeArray(infos);
 
     /* Fill UDP headers */
-    IPv6Address source=IPV6_ADDRESS_NULL;
-    EthernetInterface *device=stackFindEthernetDeviceByIPv6Network(target);
-    if(device!=NULL) source=device->IPv6[0].address;
+    
+    printf("==============udpv6SendPacket=============source=%s================\n",ipv6Address2String(source));
+    EthernetInterface *device=stackFindEthernetDeviceByIPv6Network(source);
+    if(device!=NULL) {source=device->IPv6[0].address;printf("not null\n");}
+    
+    int ifid=device->identity;
+    printf("udpv6SendPacket\n");
+    int l3id=1;
     int size_hudp=sizeof(UDPv6_fields)-1;
     int size_udp=size_data+size_hudp;
     data=(unsigned char *)_realloc(data,size_udp);
@@ -222,17 +234,23 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     udp->source=htons(psrc);
     udp->target=htons(pdst);
     udp->length=htons(size_udp);
+    /*
     int sum=ipv6PseudoHeaderChecksum(
             source,target,size_udp,IPV6_PROTOCOL_UDP);
     if(sum<0){ free(data); return 0; }
     unsigned short int checksum=(unsigned short int)sum;
-    udp=(UDPv6_fields *)data;
     udp->checksum=htons(checksum);
+    */
+    udp=(UDPv6_fields *)data;
+    
+    udp->checksum=0;
+    int checksum_offset=offsetof(UDPv6_fields,checksum);
+
 #ifdef VERBOSE
     fprintf(stderr,"Outgoing UDPv6 packet:\n");
     displayUDPv6Packet(stderr,udp,size_udp);
 #endif
-
+    
     /* Call IP layer */
     unsigned char protocol=IPV6_PROTOCOL_UDP;
     AssocArray *ip_options=NULL;
@@ -243,6 +261,9 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     AARRAY_FSETVAR(ip_infos,proto,protocol);
     AARRAY_FSETREF(ip_infos,data,data,size_udp);
     AARRAY_FSETREF(ip_infos,opts,ip_options,size_options);
+    AARRAY_MSETVAR(ip_infos,ifid);
+    AARRAY_FSETVAR(ip_infos,l3id,l3id);
+    AARRAY_FSETVAR(ip_infos,ofcs,checksum_offset);
     if(eventsTrigger(pip->event_out,ip_infos)<0){
         fprintf(stderr,"Cannot trigger IPv6 out event !\n");
         exit(-1);

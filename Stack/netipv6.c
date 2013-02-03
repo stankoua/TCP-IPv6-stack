@@ -349,7 +349,7 @@ return size_packet;
 
 unsigned char ipv6SendPacket(EventsEvent *event,EventsSelector *selector){
 StackLayers *this=(StackLayers *)event->data_init;
-
+ printf("==============ipv6sendPacket=====================\n");
 /* Get values from associative array */
 AssocArray *infos=(AssocArray *)selector->data_this;
 if(arraysTestIndex(infos,"ifid",0)<0 || arraysTestIndex(infos,"l3id",0)<0 ||
@@ -362,6 +362,7 @@ AARRAY_FGETREF(infos,ldst,unsigned char *,target,size_address);
 AARRAY_FGETREF(infos,data,unsigned char *,data,size_data);
 AARRAY_FGETVAR(infos,proto,unsigned char,protocol);
 AARRAY_HGETREF(infos,opts,AssocArray *,options);
+ printf("data\n");      
 
 /* Verifications about addresses */
 if(size_address!=IPV6_ADDRESS_SIZE){
@@ -371,7 +372,6 @@ if(size_address!=IPV6_ADDRESS_SIZE){
   }
 IPv6Address ipv6_target=*((IPv6Address *)target);
 free(target);
-
 /* Try to resolve target IPv6 address    */
 /* Reschedule packet if resolution fails */ 
 EthernetAddress ether_target;
@@ -435,6 +435,7 @@ if(arraysTestIndex(infos,"ifid",0)<0){
   AARRAY_MGETREF(options,lsrc,unsigned char *);
   AARRAY_MSETREF(route_infos,lsrc);
   }
+
 AARRAY_FSETVAR(route_infos,ifin,ifid);
 AssocArray *route_result=
   routeDoRouting(this,(unsigned char *)&ipv6_target,route_infos);
@@ -455,8 +456,8 @@ if(arraysTestIndex(infos,"ofcs",0)>=0){
     htons(genericChecksum(data,size_data,csum_headers));
   memcpy(data+ofcs,&csum_packet,sizeof(csum_packet));
   }
-arraysFreeArray(infos);
-
+//arraysFreeArray(infos);
+ 
 /* Get underlying protocol */
 GenericInterface *intf_gen=stackFindDeviceByIdentity(iout);
 if(intf_gen==NULL || intf_gen->type!=INTERFACE_TYPE_ETHERNET)

@@ -639,11 +639,14 @@ return 0;
 
 unsigned char stackUDPv6SendDatagram(
         IPv6Address to_ip,unsigned short int to_port,unsigned char *data,int size){
-    StackLayers *pudp=stackFindLayerByProtocol(LEVEL_TRANSPORT,IPV6_PROTOCOL_UDP);
+    StackLayers *pudp=stackFindLayerByProtocol(LEVEL_TRANSPORT_IPV6,IPV6_PROTOCOL_UDP);
     if(pudp==NULL || pudp->event_out<0) return 1;
     if(localAddr.port==0){ perror("stackUDPv6SendDatagram"); exit(-1); }
     AssocArray *udp_infos=NULL;
+    IPv6Address from=localAddr.addressV6;
     AARRAY_FSETVAR(udp_infos,ldst,to_ip);
+    AARRAY_FSETVAR(udp_infos,sdst,from);
+    printf("senddatagram\n");
     AARRAY_FSETVAR(udp_infos,pdst,to_port);
     AARRAY_FSETVAR(udp_infos,psrc,localAddr.port);
     AARRAY_FSETREF(udp_infos,data,data,size);
@@ -713,6 +716,32 @@ if(status!=0) process->event=-1;
 return status;
 }
 
+static unsigned char stackHandleTransportDatav6(
+  EventsEvent *event,EventsSelector *selector){
+StackProcess *process=(StackProcess *)event->data_init;
+AssocArray *infos=(AssocArray *)selector->data_this;
+if(arraysTestIndex(infos,"ldst",0)<0 || arraysTestIndex(infos,"pdst",0)<0 ||
+   arraysTestIndex(infos,"lsrc",0)<0 || arraysTestIndex(infos,"psrc",0)<0 ||
+   arraysTestIndex(infos,"data",0)<0 || arraysTestIndex(infos,"type",0)<0)
+  { arraysFreeArray(infos); return 0; }
+SocketAddress from;
+AARRAY_HGETVAR(infos,ldst,IPv6Address,localAddr.addressV6);
+if(ipv6Compare(localAddr.addressV6,IPV6_ADDRESS_NULL))
+  localAddr.address=process->address;
+AARRAY_HGETVAR(infos,lsrc,IPv6Address,from.addressV6);
+AARRAY_MGETVAR(infos,pdst,short int);
+localAddr.port=ntohs(pdst);
+if(localAddr.port==0) localAddr.port=process->port;
+AARRAY_MGETVAR(infos,psrc,short int);
+from.port=ntohs(psrc);
+AARRAY_MGETVAR(infos,type,unsigned char);
+AARRAY_FGETREF(infos,data,unsigned char *,data,size);
+arraysFreeArray(infos);
+int status=process->process(type,localAddr,from,data,size);
+localAddr.port=0;
+if(status!=0) process->event=-1;
+return status;
+}
 //
 // Initialize processes
 //
@@ -727,7 +756,7 @@ while(stackProcess[i].process!=NULL){
   int status=0;
   int proto=stackProcess[i].protocol;
   switch(proto){
-    case IPV4_PROTOCOL_UDP:
+    case IPV6_PROTOCOL_UDP:status=eventsAddAction(e,stackHandleTransportDatav6,0);break;
     case IPV4_PROTOCOL_TCP:
       status=eventsAddAction(e,stackHandleTransportData,0);
       break;
