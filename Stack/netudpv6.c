@@ -174,9 +174,7 @@ unsigned char udpv6DecodePacket(EventsEvent *event,EventsSelector *selector)
         data=(unsigned char *)_realloc(data,size_data);
         if(data==NULL && size_data>0){ perror("udpv6DecodePacket.realloc"); return 0; }
         unsigned char type=PROCESS_DATA;
-        printf("==============udpv6DecodePacket=============target=%s================\n",ipv6Address2String(iph->target));
         
-        printf("==============udpv6DecodePacket============source=%s==================\n",ipv6Address2String(iph->source));
         AssocArray *infos=NULL;
         AARRAY_MSETVAR(infos,type);
         AARRAY_MSETVAR(infos,ifid);
@@ -217,12 +215,10 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
 
     /* Fill UDP headers */
     
-    printf("==============udpv6SendPacket=============source=%s================\n",ipv6Address2String(source));
     EthernetInterface *device=stackFindEthernetDeviceByIPv6Network(source);
-    if(device!=NULL) {source=device->IPv6[0].address;printf("not null\n");}
+    if(device!=NULL) {source=device->IPv6[0].address;}
     
     int ifid=device->identity;
-    printf("udpv6SendPacket\n");
     int l3id=1;
     int size_hudp=sizeof(UDPv6_fields)-1;
     int size_udp=size_data+size_hudp;
@@ -257,7 +253,11 @@ unsigned char udpv6SendPacket(EventsEvent *event,EventsSelector *selector)
     AARRAY_FSETVAR(ip_options,lsrc,source);
     int size_options=arraysGetSize(ip_options);
     AssocArray *ip_infos=NULL;
-    AARRAY_FSETVAR(ip_infos,ldst,target);
+    int size_address = sizeof(IPv6Address);
+    IPv6Address* ptarget=malloc(sizeof(IPv6Address));
+    *ptarget = target;
+    //AARRAY_FSETVAR(ip_infos,ldst,target);
+    AARRAY_FSETREF(ip_infos,ldst,ptarget,size_address);
     AARRAY_FSETVAR(ip_infos,proto,protocol);
     AARRAY_FSETREF(ip_infos,data,data,size_udp);
     AARRAY_FSETREF(ip_infos,opts,ip_options,size_options);

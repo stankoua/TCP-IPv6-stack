@@ -50,9 +50,6 @@ unsigned char udp_echo( unsigned char type, SocketAddress to,SocketAddress from,
 unsigned char udp6_echo( unsigned char type,SocketAddress to,SocketAddress from,
                          unsigned char *data,int size)
 {
-        printf("=udpv6echo=====target=%s================\n",ipv6Address2String(to.addressV6));
-        
-        printf("=udpv6echo=====source=%s================\n",ipv6Address2String(from.addressV6));
     printf("udp6_echo: type=%x\n",type);
     if(type==PROCESS_DATA){
         printf("udp6_echo: (%s,%hu)",ipv6Address2String(from.addressV6),from.port);

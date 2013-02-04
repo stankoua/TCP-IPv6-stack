@@ -646,7 +646,6 @@ unsigned char stackUDPv6SendDatagram(
     IPv6Address from=localAddr.addressV6;
     AARRAY_FSETVAR(udp_infos,ldst,to_ip);
     AARRAY_FSETVAR(udp_infos,sdst,from);
-    printf("senddatagram\n");
     AARRAY_FSETVAR(udp_infos,pdst,to_port);
     AARRAY_FSETVAR(udp_infos,psrc,localAddr.port);
     AARRAY_FSETREF(udp_infos,data,data,size);

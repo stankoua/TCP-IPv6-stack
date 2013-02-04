@@ -349,7 +349,6 @@ return size_packet;
 
 unsigned char ipv6SendPacket(EventsEvent *event,EventsSelector *selector){
 StackLayers *this=(StackLayers *)event->data_init;
- printf("==============ipv6sendPacket=====================\n");
 /* Get values from associative array */
 AssocArray *infos=(AssocArray *)selector->data_this;
 if(arraysTestIndex(infos,"ifid",0)<0 || arraysTestIndex(infos,"l3id",0)<0 ||
@@ -456,7 +455,7 @@ if(arraysTestIndex(infos,"ofcs",0)>=0){
     htons(genericChecksum(data,size_data,csum_headers));
   memcpy(data+ofcs,&csum_packet,sizeof(csum_packet));
   }
-//arraysFreeArray(infos);
+arraysFreeArray(infos);
  
 /* Get underlying protocol */
 GenericInterface *intf_gen=stackFindDeviceByIdentity(iout);
